@@ -1,0 +1,20 @@
+name: Block agent-sandbox merges
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  block:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject agent-sandbox
+        if: github.head_ref == 'agent-sandbox'
+        run: |
+          echo "Branch 'agent-sandbox' is agent-only and cannot merge to main."
+          echo "Cherry-pick individual commits instead."
+          exit 1
+
+      - name: Allow other branches
+        if: github.head_ref != 'agent-sandbox'
+        run: echo "Branch '${{ github.head_ref }}' is allowed."
