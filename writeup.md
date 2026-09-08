@@ -34,12 +34,14 @@ implemented TD model with any conventional discount factor produces a *much* sma
 one the paper plots. This is worth flagging because the figure is often read as showing a full-size transfer.
 
 **The omission dip is fragile in a way the figure hides.** It only reaches -1 when the cue-to-reward interval
-is fixed. With +/-2 steps of jitter the dip collapses to -0.18 +/- 0.19 (`figures/noise_ablation.png`, panel B),
-and it is by far the largest source of across-seed variability (panel A). The fixed point explains it exactly:
-V(t) converges to the probability that the reward is still to come, so under uniform jitter over 5 steps the
-dip is V(61) - V(60) = 0.4 - 0.6 = -0.2. This is why the main figure holds timing fixed and treats jitter
-separately. It is also consistent with the paper's own footnote 18 (Hollerman & Schultz), where depressions at
-the normal reward time appear only when the reward is actually late.
+is fixed. With +/-2 steps of jitter the dip collapses to -0.31 +/- 0.22, and to -0.18 +/- 0.19 with all five
+noise sources on (`figures/noise_ablation.png`, panel B); jitter is also by far the largest source of
+across-seed variability (panel A). The fixed point explains the size: V(t) converges to the probability that
+the reward is still to come, so under uniform jitter over 5 steps the dip is V(61) - V(60) = 0.4 - 0.6 = -0.2,
+which the measurements scatter around without settling on, because the jitter keeps moving the weights near
+the reward. This is why the main figure holds timing fixed and treats jitter separately. It is also consistent
+with the paper's own footnote 18 (Hollerman & Schultz), where depressions at the normal reward time appear
+only when the reward is actually late.
 
 **Speed.** The paper's Fig. 3 completes the transfer within the ~60 trials it plots; at alpha=0.1 mine needs
 about 350. The surfaces figure uses alpha=0.5 to fit the transfer into a comparable number of trials.
