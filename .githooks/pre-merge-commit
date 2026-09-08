@@ -1,0 +1,15 @@
+#!/bin/sh
+# Block merging agent-sandbox into main (local guard).
+
+target=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+[ "$target" = "main" ] || exit 0
+
+merged=$(git name-rev --name-only --exclude=tags/* MERGE_HEAD 2>/dev/null) || exit 0
+
+case "$merged" in
+  agent-sandbox|agent-sandbox~*|remotes/origin/agent-sandbox|remotes/origin/agent-sandbox~*)
+    echo "pre-merge-commit: refusing to merge agent-sandbox into main" >&2
+    echo "This branch is agent-only. Cherry-pick individual commits instead." >&2
+    exit 1
+    ;;
+esac
