@@ -21,9 +21,10 @@ Two further predictions from the paper also hold. The response transfers to the 
 training, delta at the second cue (t=20) is 0.02 +/- 0.03, indistinguishable from baseline. And the model
 learns *when* the reward arrives long before it learns to respond to the cue - the reward-time response is
 below 0.1 by trial 11, but the cue response does not reach 0.9 until trial 354. The paper notes this same
-ordering for its own figure. The reason is visible in `figures/fig3_surfaces.png`: with a serial compound
-there is no eligibility beyond one step, so value backs up exactly one time step per trial, and bridging the
-50-step gap therefore costs at least 50 trials regardless of the learning rate.
+ordering for its own figure. The reason is that a serial compound has no eligibility beyond one step, so value
+backs up exactly one time step per trial: V(t) first becomes nonzero on trial 61-t for every t, at any
+learning rate. Bridging the 50-step gap therefore costs at least 50 trials no matter how alpha is set, while
+cancelling the reward-time response only takes a handful.
 
 ## Where my version differs from the paper's
 
@@ -44,7 +45,7 @@ with the paper's own footnote 18 (Hollerman & Schultz), where depressions at the
 only when the reward is actually late.
 
 **Speed.** The paper's Fig. 3 completes the transfer within the ~60 trials it plots; at alpha=0.1 mine needs
-about 350. The surfaces figure uses alpha=0.5 to fit the transfer into a comparable number of trials.
+about 350, and only reaches the paper's trial count at alpha=0.5, which is the largest stable value here.
 
 ## What I tried that did not work
 
