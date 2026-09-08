@@ -1,0 +1,25 @@
+#!/bin/sh
+COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="$2"
+
+case "$COMMIT_SOURCE" in
+  merge|squash) exit 0 ;;
+esac
+
+subject=$(head -n1 "$COMMIT_MSG_FILE")
+pattern='^(feat|fix|docs|style|refactor|test|chore|build|ci)(\([a-z0-9._-]+\))?!?: .+'
+
+if ! echo "$subject" | grep -qE "$pattern"; then
+  echo "commit-msg hook: invalid commit message format" >&2
+  echo "" >&2
+  echo "  Subject: \"$subject\"" >&2
+  echo "" >&2
+  echo "Allowed types: feat, fix, docs, style, refactor, test, chore, build, ci" >&2
+  echo "" >&2
+  echo "Expected format:" >&2
+  echo "  <type>(<optional-scope>): <imperative summary>" >&2
+  echo "" >&2
+  echo "Example:" >&2
+  echo "  chore: add gitignore entries for Python artifacts" >&2
+  exit 1
+fi

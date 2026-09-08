@@ -1,0 +1,20 @@
+#!/bin/sh
+# Strip LLM/agent attribution so agents are not GitHub contributors.
+MSG_FILE="$1"
+
+# Portable sed: GNU sed uses --version; macOS/BSD sed does not.
+if sed --version >/dev/null 2>&1; then
+  SED_INPLACE="sed -i"
+else
+  SED_INPLACE="sed -i ''"
+fi
+
+$SED_INPLACE \
+  -e '/^Co-authored-by: Cursor <cursoragent@cursor\.com>$/d' \
+  -e '/cursoragent@cursor\.com/d' \
+  -e '/^Made-with: Cursor$/d' \
+  -e '/^Co-authored-by:.*[Cc]opilot/d' \
+  -e '/^Co-authored-by:.*[Aa]nthropic/d' \
+  -e '/^Co-authored-by:.*[Cc]laude/d' \
+  -e '/^Co-authored-by:.*[Oo]penai/d' \
+  "$MSG_FILE"
