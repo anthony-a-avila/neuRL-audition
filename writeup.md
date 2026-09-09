@@ -1,7 +1,6 @@
 # Recreating Schultz, Dayan & Montague (1997) with a TD learner
 
-**Setup.** Trial of 80 time steps, cues at t=10 and t=20, reward r=1 at t=60, exactly as in Fig. 3 of the
-paper. Each cue is a complete serial compound (one weight per delay), V(t) is a linear sum of the active
+**Setup.** Trial of 80 time steps, cues at t=10 and t=20, reward r=1 at t=60, matching the paper's task. Each cue is a complete serial compound (one weight per delay), V(t) is a linear sum of the active
 weights, delta(t) = r(t) + gamma*V(t+1) - V(t), and weights are updated once per trial by Eq. 5. Defaults are
 alpha=0.1, gamma=1, 400 trials, 8 seeds. Randomness comes from reward magnitude (SD 0.15), 10% reward
 omission, +/-2 steps of cue-to-reward jitter, near-zero weight init, and spike-count noise (SD 0.05) added to
@@ -28,7 +27,7 @@ cancelling the reward-time response only takes a handful.
 
 ## Where my version differs from the paper's
 
-**gamma has to be 1.** The value surface in the paper's Fig. 3 saturates at 1, which is only possible with no
+**gamma has to be 1.** The value surface in the paper saturates at 1, which is only possible with no
 discounting. That is not a free choice: the cue-time response scales as gamma^50 over a 50-step interval, so
 gamma=0.98 gives a cue response of 0.359 (gamma^50 = 0.364) and gamma=0.9 gives 0.005. A correctly
 implemented TD model with any conventional discount factor produces a *much* smaller cue response than the
@@ -44,7 +43,7 @@ the reward. This is why the main figure holds timing fixed and treats jitter sep
 with the paper's own footnote 18 (Hollerman & Schultz), where depressions at the normal reward time appear
 only when the reward is actually late.
 
-**Speed.** The paper's Fig. 3 completes the transfer within the ~60 trials it plots; at alpha=0.1 mine needs
+**Speed.** The paper completes the transfer within the ~60 trials it plots; at alpha=0.1 mine needs
 about 350, and only reaches the paper's trial count at alpha=0.5, which is the largest stable value here.
 
 ## What I tried that did not work
