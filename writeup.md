@@ -1,8 +1,8 @@
 # Recreating Schultz, Dayan & Montague (1997) with a TD learner
 
-**Setup.** Trial of 80 time steps, cues at t=10 and t=20, reward r=1 at t=60, matching the paper's task. Each cue is a complete serial compound (one weight per delay), V(t) is a linear sum of the active
+**Setup.** Trial of 80 time steps, cue at t=10, reward r=1 at t=60, for the Fig. 1 replication task. The cue is a complete serial compound (one weight per delay), V(t) is a linear sum of the active
 weights, delta(t) = r(t) + gamma*V(t+1) - V(t), and weights are updated once per trial by Eq. 5. Defaults are
-alpha=0.1, gamma=1, 400 trials, 8 seeds. Randomness comes from reward magnitude (SD 0.15), 10% reward
+alpha=0.1, gamma=1, 650 training trials (one cue needs more trials than the paper's two-cue task for the same cue-time response), 8 seeds. Randomness comes from reward magnitude (SD 0.15), 10% reward
 omission, +/-2 steps of cue-to-reward jitter, near-zero weight init, and spike-count noise (SD 0.05) added to
 the *reported* delta only, never to the learning signal.
 
@@ -12,14 +12,12 @@ All three patterns come out (`figures/fig1_three_cases.png`, mean +/- SD over 8 
 
 | case | delta at cue (t=10) | delta at reward (t=60) |
 | --- | --- | --- |
-| naive, reward occurs | 0.00 | +0.91 +/- 0.13 |
-| trained, reward occurs | +0.88 +/- 0.03 | +0.05 +/- 0.08 |
-| trained, reward withheld | +0.88 +/- 0.03 | -0.94 +/- 0.07 |
+| naive, reward occurs | 0.00 | +0.97 +/- 0.12 |
+| trained, reward occurs | +0.90 +/- 0.05 | +0.10 +/- 0.10 |
+| trained, reward withheld | +0.90 +/- 0.05 | -0.89 +/- 0.09 |
 
-Two further predictions from the paper also hold. The response transfers to the *earliest* cue only: after
-training, delta at the second cue (t=20) is 0.02 +/- 0.03, indistinguishable from baseline. And the model
-learns *when* the reward arrives long before it learns to respond to the cue - the reward-time response is
-below 0.1 by trial 11, but the cue response does not reach 0.9 until trial 354. The paper notes this same
+Two further predictions from the paper also hold. The model learns *when* the reward arrives long before it learns to respond to the cue - the reward-time response is
+below 0.1 by trial 11, but the cue response does not reach 0.9 until roughly trial 600 with a single serial compound at this learning rate. The paper notes this same
 ordering for its own figure. The reason is that a serial compound has no eligibility beyond one step, so value
 backs up exactly one time step per trial: V(t) first becomes nonzero on trial 61-t for every t, at any
 learning rate. Bridging the 50-step gap therefore costs at least 50 trials no matter how alpha is set, while
@@ -43,8 +41,9 @@ the reward. This is why the main figure holds timing fixed and treats jitter sep
 with the paper's own footnote 18 (Hollerman & Schultz), where depressions at the normal reward time appear
 only when the reward is actually late.
 
-**Speed.** The paper completes the transfer within the ~60 trials it plots; at alpha=0.1 mine needs
-about 350, and only reaches the paper's trial count at alpha=0.5, which is the largest stable value here.
+**Speed.** The paper completes the transfer within the ~60 trials it plots; with one cue at alpha=0.1 the
+cue response needs on the order of 600 training trials to exceed 0.9. At alpha=0.5 a single cue reaches full
+transfer within 400 trials, and alpha=1 remains stable with only one compound.
 
 ## What I tried that did not work
 
@@ -52,9 +51,9 @@ about 350, and only reaches the paper's trial count at alpha=0.5, which is the l
   looks harmless and quietly destroys the result: the cue response falls to 0.008, because the weight at delay
   0 learns to predict the reward and there is then nothing preceding it to be surprised by. The onset spike
   exists only because the cue is unrepresented at the moment it appears.
-- alpha above 0.5 diverges, but only with two cues. Both compounds are active at the same time steps, so the
-  effective step size per time step is 2*alpha and stability needs 2*alpha < 1. With a single cue alpha=1 is
-  stable. Nothing in Eq. 5 signals this.
+- With multiple simultaneous cues, stability needs n_cues * alpha < 1 because overlapping compounds update the
+  same time steps more than once per trial. This replication uses a single cue, so alpha=1 is stable; nothing
+  in Eq. 5 signals the multi-cue limit.
 - Feeding the spike-count noise into learning rather than only into the recorded trace. It is fairly benign
   (cue response 0.99 -> 0.81 at SD 0.2), but it conflates measurement noise with a learning signal, so the
   code keeps the two separate.
