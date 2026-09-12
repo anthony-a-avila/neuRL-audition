@@ -1,0 +1,70 @@
+---
+description: LaTeX-safe markdown — avoid formatting that breaks math rendering in chat and docs
+alwaysApply: true
+---
+
+# LaTeX in Markdown
+
+When writing math in markdown (chat replies, notes, writeups):
+
+## Cursor chat: single `$` does not render
+
+In Cursor chat preview, `$...$` inline math shows as raw text. Only `$$...$$` renders.
+**Never use single `$` delimiters in chat responses.** Use `$$` for all math, even short symbols.
+
+## Do not use
+
+- **Single-dollar inline math** — `$G_t$`, `$R_{t+1}$` (raw in Cursor chat)
+- **Blockquotes containing math** — `>` lines with `$$...$$` inside
+- **Backticks around math** — `` `$$\delta_t$$` ``
+- **Bold/italic wrapping math** — `**$$\delta_t$$**`
+- **Bare underscores outside math** — write `$$S_t$$`, not `S_t` (markdown treats `_` as emphasis)
+
+## Use instead
+
+- **All math in chat:** `$$` on its own lines, with blank lines above and below:
+
+  $$
+  \delta_t \doteq R_{t+1} + \gamma V(S_{t+1}) - V(S_t)
+  $$
+
+- **Short symbols in prose:** put the symbol on its own `$$` line between sentences, not mid-sentence with `$`.
+
+  Monte Carlo uses the full return. The TD target is:
+
+  $$
+  R_{t+1} + \gamma V(S_{t+1})
+  $$
+
+- **Quoted passages with math:** plain paragraphs, not `>` blockquotes.
+- **Lists with math:** normal paragraph under the list item, not nested blockquotes.
+
+## Committed markdown files
+
+GitHub and some viewers accept `$...$` inline. Cursor chat does not. Prefer `$$` blocks in files you will discuss in chat; use `$` inline only in files meant solely for external viewers.
+
+## Examples
+
+Bad (chat — single `$`):
+
+Monte Carlo uses $G_t$; TD uses $R_{t+1} + \gamma V(S_{t+1})$.
+
+Good (chat):
+
+Monte Carlo uses the return $$G_t$$. The one-step TD target is:
+
+$$
+R_{t+1} + \gamma V(S_{t+1})
+$$
+
+Bad (chat — math in blockquote):
+
+> TD error: $$\delta_t = r + \gamma V(s') - V(s)$$
+
+Good (chat):
+
+TD error:
+
+$$
+\delta_t = r + \gamma V(s') - V(s)
+$$
