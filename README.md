@@ -4,7 +4,7 @@ A replication of Schultz, Dayan & Montague (1997), *A Neural Substrate of Predic
 275:1593. A TD learner with a complete serial compound representation is trained on a cue-then-reward trial;
 its prediction error reproduces the three dopamine response patterns of the paper's Fig. 1.
 
-Everything lives in one notebook, [td_dopamine.ipynb](td_dopamine.ipynb), which derives the model alongside
+Everything lives in one notebook, [agent-sandbox.ipynb](agent-sandbox.ipynb), which derives the model alongside
 the code and is committed with its outputs, so it reads without being run. The findings, the departures from
 the paper and what I would try next are in [writeup.md](writeup.md).
 
@@ -13,7 +13,7 @@ the paper and what I would try next are in [writeup.md](writeup.md).
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/jupyter lab td_dopamine.ipynb
+.venv/bin/jupyter lab agent-sandbox.ipynb
 ```
 
 Running all cells takes a couple of seconds and rewrites the two PNGs in `figures/`:
@@ -26,7 +26,7 @@ Running all cells takes a couple of seconds and rewrites the two PNGs in `figure
 To regenerate them without opening the notebook:
 
 ```sh
-.venv/bin/jupyter nbconvert --to notebook --execute --inplace td_dopamine.ipynb
+.venv/bin/jupyter nbconvert --to notebook --execute --inplace agent-sandbox.ipynb
 ```
 
 Parameters live in the `Config` dataclass; `NOISE_SOURCES` lists the sources of randomness and
