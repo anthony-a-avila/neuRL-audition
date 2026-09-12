@@ -1,0 +1,125 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=0.6in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+% Compact sections without requiring titlesec.
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-1.5ex \@plus -.4ex \@minus -.2ex}%
+  {0.5ex \@plus .2ex}%
+  {\normalfont\bfseries}}
+\makeatother
+\setlist[itemize]{leftmargin=1.1em,topsep=1pt,itemsep=1pt,parsep=0pt}
+\setlength{\parskip}{2pt}
+\pagestyle{empty}
+
+\begin{document}
+\small
+
+\begin{center}
+  {\large\bfseries Recreating Figure 1 of Schultz, Dayan \& Montague (1997)}\\[1pt]
+  {\small Anthony Avila \quad\textbullet\quad \texttt{anthony\_avila@berkeley.edu}
+  \quad\textbullet\quad code and figures in \texttt{td\_dopamine.ipynb}}
+\end{center}
+
+\section*{The claim and the model}
+
+The paper argues that dopamine neurons do not code for the occurrence of a reward, but for an error
+between the predicted and the actual time and magnitude of that reward. A monkey presses a lever
+after a light cue (CS) and receives fruit juice (US). Before training its dopamine neurons burst when
+the juice arrives; after training the burst moves to the cue; and if the juice is then withheld,
+firing is depressed below baseline at exactly the moment it was due.
+
+Reward is the immediate signal $r(t)$, while value is expected total future reward, estimated by
+$\hat{V}(t)$. The quantity the paper identifies with dopamine output is the temporal-difference
+error $\delta(t) = r(t) + \gamma\hat{V}(t+1) - \hat{V}(t)$, which is available at every step rather
+than only at the end of a trial. A single weight per cue could not encode \emph{when} the reward is
+due, so the cue is given a complete serial-compound representation ($x_i(t) = 1$ exactly $i$ steps
+after cue onset and $0$ otherwise), with $\hat{V}(t) = \sum_i w_i x_i(t)$ and a per-trial update
+$\Delta w_i = \alpha \sum_t x_i(t)\,\delta(t)$.
+
+I run 80 steps per trial, cue at $t=10$, reward of size $1$ at $t=60$ (the times in the paper's Fig.~3), 50 delay features, $\alpha = 0.1$, $\gamma = 1$, and 650 training trials, across 8 seeds.
+Four sources of non-determinism are added: juice volume ($\sigma = 0.15$), reward omitted on 10\% of
+training trials, random weight initialisation ($\sigma = 0.01$), and noise on the reported error
+($\sigma = 0.05$).
+
+\section*{What I found}
+
+All three effects appear. Predicted values assume perfect learning; measured values are mean
+$\pm$ s.d.\ over the 8 seeds.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+& & \multicolumn{2}{c}{$\delta$ at cue ($t=10$)} & \multicolumn{2}{c}{$\delta$ at reward ($t=60$)}\\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Case & Intuition & predicted & measured & predicted & measured\\
+\midrule
+Naive, juice delivered   & ``Didn't see that coming'' & $0$  & $\approx 0$        & $+1$ & $+1.064 \pm 0.065$\\
+Trained, juice delivered & ``Just as I thought''      & $+1$ & $+0.889 \pm 0.021$ & $0$  & $+0.118 \pm 0.047$\\
+Trained, juice withheld  & ``Where's the juice?''     & $+1$ & unchanged          & $-1$ & $-0.914 \pm 0.103$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The learner stores \emph{when} the juice was due, not merely that some was coming: the omission trace
+is flat from the cue all the way to $t=60$ and only then dips, with no intervening event to trigger
+it. The cue response is unchanged in the last row because $\delta(10)$ depends only on the weights.
+Spread across seeds is small relative to the effects: the largest s.d.\ is about a tenth of the
+reward magnitude.
+
+\section*{Where my version differs from the paper's, and why}
+
+\begin{itemize}
+  \item The predicted reward is not perfectly silent ($+0.118$, not $0$), and the cue burst
+  undershoots at $+0.889$. Both follow from the 10\% omission rate during training: $\hat{V}$
+  converges to the \emph{expected} reward, not to $1$. Setting that rate to zero gives $+0.995$ at
+  the cue, $+0.017$ at the reward and $-1.007$ on omission, matching the paper's middle panel. It is
+  a consequence of the non-determinism I chose, not an error in the learner.
+  \item My naive panel is not the paper's naive panel. Fig.~1 (top) is labelled ``(No CS)'':
+  no cue is presented at all and the histogram is aligned on the reward. Mine presents the cue with
+  untrained weights, so it is the first trial of training rather than an unpredicted reward in
+  isolation. The traces coincide only because the initial weights are near zero.
+  \item One cue, not two. The caption of Fig.~3 gives cues at steps 10 \emph{and} 20 with
+  reward at 60; I kept the first. Its body text calls the same figure a reward ``20 time steps into
+  the future,'' disagreeing with its own caption; I followed the caption.
+  \item $\gamma = 1$ is load-bearing. Across a 50-step interval, discounting erases the
+  effect the figure exists to show: $\gamma = 0.99$ shrinks the cue burst to $+0.59$ and
+  $\gamma = 0.95$ to $+0.08$. Fig.~3 reports weights that ``eventually all saturate to 1,'' implying
+  $\gamma = 1$ there too.
+  \item Errors are symmetric in $\delta$ but not in spikes. The dip, $-0.914$, nearly
+  mirrors the naive burst, $+1.064$, yet a neuron cannot fire at a negative rate, so the depression
+  in Fig.~1 is bounded below by the basal rate. My raster panel reproduces this by suppressing
+  background firing, which is why the dip looks shallower than the burst.
+\end{itemize}
+
+\section*{What didn't work}
+
+\begin{itemize}
+  \item Varying the seed alone. A deterministic TD learner on a complete serial compound
+  follows exactly one trajectory: with all four noise magnitudes at zero the 8 seeds return
+  byte-identical arrays and the figure collapses to a single line. Showing spread required making the
+  task and the report stochastic, not just reseeding.
+  \item Discounting. $\gamma < 1$ is the textbook default and the wrong choice at this
+  cue--reward interval, for the reason above.
+  \item Training only as long as the stimulus is wide. The burst does not jump to the cue;
+  it drifts backwards one feature at a time at a rate set by $\alpha$. With $\alpha = 0.1$ the peak
+  of $\delta$ is still at $t=55$ after 50 trials and reaches the cue near trial 400, hence the 650
+  trials. Training briefly leaves a burst stranded mid-interval, which looks like a bug and is not.
+\end{itemize}
+
+\section*{One thing I'd try next}
+
+\looseness=-1
+Recreate Fig.~3 rather than Fig.~1: plot $\delta$ as a surface over time step \emph{and} trial index,
+so the burst is seen migrating from reward to cue instead of sampled at three snapshots; the
+training loop already stores every trial's error. Sweeping $\alpha$ against the cue--reward interval
+would then show whether that backward drift rate is a real prediction of the model or an artefact of
+how the cue is represented.
+
+\end{document}
